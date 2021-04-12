@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:todo_app/ui/tasks/components/to_do_screen.dart';
+import 'package:todo_app/ui/tasks/components/task_status_screen.dart';
 
 class TasksScreen extends StatefulWidget {
   @override
@@ -57,15 +57,13 @@ class _TasksScreenState extends State<TasksScreen> {
         ),
         body: TabBarView(
           children: [
-            ToDoScreen(),
-            Center(
-              child: Text('In Progress'),
+            TaskStatusScreen(
+              status: "To Do",
             ),
-            Center(
-              child: Text('Testing'),
-            ),
-            Center(
-              child: Text('Done'),
+            TaskStatusScreen(status: "In Progress"),
+            TaskStatusScreen(status: "Testing"),
+            TaskStatusScreen(
+              status: "Done",
             ),
           ],
         ),

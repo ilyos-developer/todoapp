@@ -1,11 +1,32 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:todo_app/service/fire_store.dart';
 
-class TaskDetailsView extends StatelessWidget {
+class TaskDetailsView extends StatefulWidget {
   final List<QueryDocumentSnapshot> docs;
   final int index;
 
   const TaskDetailsView({Key key, this.docs, this.index}) : super(key: key);
+
+  @override
+  _TaskDetailsViewState createState() => _TaskDetailsViewState(docs, index);
+}
+
+class _TaskDetailsViewState extends State<TaskDetailsView> {
+  final List<QueryDocumentSnapshot> docs;
+  final int index;
+
+  String dropdownValue;
+
+  _TaskDetailsViewState(this.docs, this.index);
+
+  List<String> statusList = ["To Do", "In Progress", "Testing", "Done"];
+
+  @override
+  void initState() {
+    super.initState();
+    dropdownValue = docs[index]["status"];
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +52,7 @@ class TaskDetailsView extends StatelessWidget {
                 fontSize: 22,
               ),
             ),
-            SizedBox(height: 15),
+            SizedBox(height: 10),
             Row(
               children: [
                 Text(
@@ -43,7 +64,7 @@ class TaskDetailsView extends StatelessWidget {
                 ),
                 Spacer(),
                 Text(
-                  "Автор: ${docs[index]["author"]}",
+                  "Названия: ${docs[index]["author"]}",
                   style: TextStyle(
                     fontStyle: FontStyle.italic,
                     fontSize: 18,
@@ -51,6 +72,37 @@ class TaskDetailsView extends StatelessWidget {
                 ),
               ],
             ),
+            Row(
+              children: [
+                Text(
+                  "Статус:",
+                  style: TextStyle(fontSize: 18),
+                ),
+                SizedBox(width: 15),
+                DropdownButton(
+                  value: dropdownValue,
+                  onChanged: (value) {
+                    setState(() {
+                      dropdownValue = value;
+                      FireStore().updateStatus(
+                          taskName: docs[index]["task_name"],
+                          status: dropdownValue);
+                    });
+                  },
+                  items: statusList.map(
+                    (item) {
+                      return DropdownMenuItem(
+                        value: item,
+                        child: Text(
+                          item,
+                          style: TextStyle(fontSize: 16),
+                        ),
+                      );
+                    },
+                  ).toList(),
+                ),
+              ],
+            )
           ],
         ),
       ),

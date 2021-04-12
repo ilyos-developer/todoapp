@@ -119,6 +119,7 @@ class _AddTaskState extends State<AddTask> {
                   textInputAction: TextInputAction.next,
                   autofocus: false,
                   validator: (value) => value.isEmpty ? 'Пустое поле' : null,
+                  minLines: 2,
                   maxLines: 5,
                   decoration: InputDecoration(
                     labelText: 'Описание',
@@ -151,7 +152,7 @@ class _AddTaskState extends State<AddTask> {
                               id: _idController.text,
                               taskName: _nameController.text,
                               describe: _describeController.text,
-                              status: "to_do");
+                              status: "To Do");
                           Navigator.pop(context);
                         }
                       }
