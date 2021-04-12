@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:todo_app/bottom_nav_bar.dart';
+import 'package:todo_app/models/user.dart';
+import 'package:todo_app/service/auth.dart';
 import 'package:todo_app/ui/auth/register_page.dart';
 
 class LoginPage extends StatefulWidget {
@@ -14,7 +16,10 @@ class _LoginPageState extends State<LoginPage> {
   TextEditingController _emailController = TextEditingController();
   TextEditingController _passwordController = TextEditingController();
 
-  bool _btnColor = false;
+  AuthService _authService = AuthService();
+  String _email, _password;
+
+  bool _isValidate = false;
 
   @override
   void initState() {
@@ -29,24 +34,41 @@ class _LoginPageState extends State<LoginPage> {
     });
   }
 
+  void login() async {
+    _email = _emailController.text;
+    _password = _passwordController.text;
+
+    MyUser myUser = await _authService.signInWithEmailAndPassword(
+        _email.trim(), _password.trim());
+    if (myUser == null) {
+      final messenger = ScaffoldMessenger.of(context);
+      messenger.showSnackBar(
+        SnackBar(content: Text('Пользовател не найден! email/пароль неверный')),
+      );
+    } else {
+      _emailController.clear();
+      _passwordController.clear();
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(
+          builder: (context) => BottomNavBar(),
+        ),
+        (route) => false,
+      );
+    }
+  }
+
   void validate() {
     if (_emailController.text.isNotEmpty &&
         _passwordController.text.isNotEmpty) {
       setState(() {
-        _btnColor = true;
+        _isValidate = true;
       });
     } else {
       setState(() {
-        _btnColor = false;
+        _isValidate = false;
       });
     }
-  }
-
-  @override
-  void dispose() {
-    _emailController.dispose();
-    _passwordController.dispose();
-    super.dispose();
   }
 
   @override
@@ -193,19 +215,15 @@ class _LoginPageState extends State<LoginPage> {
               Container(
                 margin: EdgeInsets.only(left: 15, right: 15),
                 child: MaterialButton(
-                  onPressed: () {
-                    if (_formKey.currentState.validate() &&
-                        _emailController.text.isNotEmpty &&
-                        _passwordController.text.isNotEmpty) {
-                      Navigator.pushAndRemoveUntil(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => BottomNavBar(),
-                        ),
-                        (route) => false,
-                      );
-                    }
-                  },
+                  onPressed: _isValidate
+                      ? () {
+                          if (_formKey.currentState.validate() &&
+                              _emailController.text.isNotEmpty &&
+                              _passwordController.text.isNotEmpty) {
+                            login();
+                          }
+                        }
+                      : null,
                   elevation: 0.0,
                   height: 60,
                   minWidth: MediaQuery.of(context).size.width,
@@ -219,7 +237,7 @@ class _LoginPageState extends State<LoginPage> {
                 ),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(10.0),
-                  color: _btnColor
+                  color: _isValidate
                       ? Colors.blue
                       : Color.fromRGBO(211, 214, 218, 1),
                 ),
@@ -252,5 +270,12 @@ class _LoginPageState extends State<LoginPage> {
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
   }
 }

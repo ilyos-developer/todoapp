@@ -1,6 +1,7 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:todo_app/bottom_nav_bar.dart';
+import 'package:todo_app/models/user.dart';
+import 'package:todo_app/service/auth.dart';
 import 'package:todo_app/ui/auth/login_page.dart';
 
 class RegisterPage extends StatefulWidget {
@@ -9,21 +10,18 @@ class RegisterPage extends StatefulWidget {
 }
 
 class _RegisterPageState extends State<RegisterPage> {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-
   GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   TextEditingController _nameController = TextEditingController();
-  TextEditingController _seconNameController = TextEditingController();
+  TextEditingController _secondNameController = TextEditingController();
   TextEditingController _emailController = TextEditingController();
   TextEditingController _passwordController = TextEditingController();
   TextEditingController _passwordConfirmationController =
       TextEditingController();
 
-  bool _success;
-  String _userEmail;
-
+  AuthService _authService = AuthService();
   bool isHidePassword, isHideConfirmationPassword;
-  bool _btnColor = false;
+  bool _isValidate = false;
+  String _name, _email, _password;
 
   @override
   void initState() {
@@ -31,7 +29,7 @@ class _RegisterPageState extends State<RegisterPage> {
     _nameController.addListener(() {
       validate();
     });
-    _seconNameController.addListener(() {
+    _secondNameController.addListener(() {
       validate();
     });
     _emailController.addListener(() {
@@ -49,35 +47,43 @@ class _RegisterPageState extends State<RegisterPage> {
 
   void validate() {
     if (_nameController.text.isNotEmpty &&
-        _seconNameController.text.isNotEmpty &&
+        _secondNameController.text.isNotEmpty &&
         _emailController.text.isNotEmpty &&
         _passwordController.text.isNotEmpty &&
         _passwordConfirmationController.text.isNotEmpty) {
       setState(() {
-        _btnColor = true;
+        _isValidate = true;
       });
     } else {
       setState(() {
-        _btnColor = false;
+        _isValidate = false;
       });
     }
   }
 
   void _register() async {
-    final User user = (await _auth.createUserWithEmailAndPassword(
-      email: _emailController.text,
-      password: _passwordController.text,
-    ))
-        .user;
-    if (user != null) {
-      setState(() {
-        _success = true;
-        _userEmail = user.email;
-      });
+    _email = _emailController.text;
+    _password = _passwordConfirmationController.text;
+    _name = _nameController.text;
+
+    MyUser myUser = await _authService.registerWithEmailAndPassword(
+        _email.trim(), _password.trim());
+
+    if (myUser == null) {
+      final messenger = ScaffoldMessenger.of(context);
+      messenger.showSnackBar(
+        SnackBar(content: Text('Что то пашло не так')),
+      );
     } else {
-      setState(() {
-        _success = true;
-      });
+      _emailController.clear();
+      _passwordController.clear();
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(
+          builder: (context) => BottomNavBar(),
+        ),
+        (route) => false,
+      );
     }
   }
 
@@ -136,7 +142,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   Container(
                     margin: EdgeInsets.only(left: 20, right: 20, bottom: 20),
                     child: TextFormField(
-                      controller: _seconNameController,
+                      controller: _secondNameController,
                       keyboardType: TextInputType.name,
                       textInputAction: TextInputAction.next,
                       validator: (value) =>
@@ -277,18 +283,14 @@ class _RegisterPageState extends State<RegisterPage> {
                   Container(
                     margin: EdgeInsets.only(left: 15, right: 15),
                     child: MaterialButton(
-                      onPressed: () {
-                        if (_formKey.currentState.validate()) {
-                          print('validate');
-                          _register();
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => BottomNavBar(),
-                            ),
-                          );
-                        }
-                      },
+                      onPressed: _isValidate
+                          ? () {
+                              if (_formKey.currentState.validate()) {
+                                print('validate');
+                                _register();
+                              }
+                            }
+                          : null,
                       elevation: 0.0,
                       height: 60,
                       minWidth: MediaQuery.of(context).size.width,
@@ -302,7 +304,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     ),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(10.0),
-                      color: _btnColor
+                      color: _isValidate
                           ? Colors.blue
                           : Color.fromRGBO(211, 214, 218, 1),
                     ),
@@ -355,7 +357,7 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   void dispose() {
     _nameController.dispose();
-    _seconNameController.dispose();
+    _secondNameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     _passwordConfirmationController.dispose();
