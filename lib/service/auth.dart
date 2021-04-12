@@ -3,12 +3,14 @@ import 'package:todo_app/models/user.dart';
 
 class AuthService {
   final FirebaseAuth _fAuth = FirebaseAuth.instance;
+  User user;
 
-  Future<MyUser> signInWithEmailAndPassword(String email, String password) async {
+  Future<MyUser> signInWithEmailAndPassword(
+      String email, String password) async {
     try {
       UserCredential result = await _fAuth.signInWithEmailAndPassword(
           email: email, password: password);
-      User user = result.user;
+      user = result.user;
       return MyUser.fromFireBase(user);
     } catch (e) {
       print(e);
@@ -17,14 +19,12 @@ class AuthService {
   }
 
   Future<MyUser> registerWithEmailAndPassword(
-      String email, String password) async {
+      String email, String password, String name, String familiya) async {
     try {
       UserCredential result = await _fAuth.createUserWithEmailAndPassword(
           email: email, password: password);
-      User user = result.user;
-      print(user.email);
-      print(user.displayName);
-      print(user.uid);
+      result.user.updateProfile(displayName: "$name $familiya");
+      user = result.user;
       return MyUser.fromFireBase(user);
     } catch (e) {
       print(e);
@@ -37,13 +37,26 @@ class AuthService {
   }
 
   Stream<MyUser> get currentUser {
-   return _fAuth.authStateChanges().map((User user) => user != null ? MyUser.fromFireBase(user) : null);
+    return _fAuth
+        .authStateChanges()
+        .map((User user) => user != null ? MyUser.fromFireBase(user) : null);
   }
 
-  Future<void> updateProfile(String userName) async {
-    User user;
+  Future<void> updateProfile({String newName, String newFamiliya}) async {
+    user = _fAuth.currentUser;
+    print("new profile name: $newName");
     await user.updateProfile(
-      displayName: userName,
+      displayName: "$newName $newFamiliya",
     );
+  }
+
+  Future<void> updatePassword(String newPassword) async {
+    user = _fAuth.currentUser;
+    print("new password: $newPassword");
+    await user.updatePassword(newPassword).then((_) {
+      print("Successfully changed password");
+    }).catchError((error) {
+      print("Password can't be changed" + error.toString());
+    });
   }
 }

@@ -21,7 +21,7 @@ class _RegisterPageState extends State<RegisterPage> {
   AuthService _authService = AuthService();
   bool isHidePassword, isHideConfirmationPassword;
   bool _isValidate = false;
-  String _name, _email, _password;
+  String _name, _familiya, _email, _password;
 
   @override
   void initState() {
@@ -65,9 +65,10 @@ class _RegisterPageState extends State<RegisterPage> {
     _email = _emailController.text;
     _password = _passwordConfirmationController.text;
     _name = _nameController.text;
+    _familiya = _secondNameController.text;
 
     MyUser myUser = await _authService.registerWithEmailAndPassword(
-        _email.trim(), _password.trim());
+        _email.trim(), _password.trim(), _name.trim(), _familiya.trim());
 
     if (myUser == null) {
       final messenger = ScaffoldMessenger.of(context);

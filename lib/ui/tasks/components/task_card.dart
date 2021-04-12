@@ -14,7 +14,7 @@ class TaskCard extends StatefulWidget {
 class _TaskCardState extends State<TaskCard> {
   final String status;
   CollectionReference toDoStore =
-      FirebaseFirestore.instance.collection('to_do');
+      FirebaseFirestore.instance.collection('tasks');
 
   _TaskCardState(this.status);
 
