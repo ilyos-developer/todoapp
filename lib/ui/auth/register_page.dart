@@ -209,8 +209,14 @@ class _RegisterPageState extends State<RegisterPage> {
                       keyboardType: TextInputType.visiblePassword,
                       textInputAction: TextInputAction.next,
                       obscureText: isHidePassword,
-                      validator: (value) =>
-                          value.isEmpty ? 'Пустое поле' : null,
+                      validator: (value) {
+                        if (value.isEmpty) {
+                          return "Пустое поле";
+                        }
+                        return (value.length < 6)
+                            ? "Пароль дожен больше 5"
+                            : null;
+                      },
                       decoration: InputDecoration(
                         labelText: 'Придумайте пароль',
                         filled: true,
